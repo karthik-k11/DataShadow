@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 
 from profiler import profile_dataset
 
+from pii_detector import detect_pii
+
 app = Flask(__name__)
 
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
@@ -18,6 +20,7 @@ MAX_COLUMNS = 100
 def index():
     dataset_info = None
     profile = None
+    pii_findings = []
     error = None
 
     if request.method == "POST":
@@ -59,6 +62,7 @@ def index():
                     }
 
                     profile = profile_dataset(df)
+                    pii_findings = detect_pii(df)
 
             except (
                 ValueError,
@@ -79,6 +83,7 @@ def index():
         "index.html",
         dataset_info=dataset_info,
         profile=profile,
+        pii_findings=pii_findings,
         error=error,
     )
 
@@ -90,6 +95,7 @@ def file_too_large(_error):
             "index.html",
             dataset_info=None,
             profile=None,
+            pii_findings=[],
             error="File exceeds the 5 MB upload limit.",
         ),
         413,

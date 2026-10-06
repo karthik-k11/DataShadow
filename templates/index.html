@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +24,8 @@
             <h2>Upload dataset</h2>
 
             <p>
-                Upload a CSV to inspect its structure and statistics.
+                Upload a CSV to inspect its structure, statistics,
+                and potential privacy indicators.
             </p>
 
             <form method="POST" enctype="multipart/form-data">
@@ -52,7 +54,6 @@
         {% if profile %}
 
         <section class="panel">
-
             <h2>Dataset overview</h2>
 
             <p>
@@ -61,7 +62,6 @@
             </p>
 
             <div class="stats">
-
                 <div class="stat">
                     <span>Rows</span>
                     <strong>{{ profile.row_count }}</strong>
@@ -81,15 +81,12 @@
                     <span>Duplicate rows</span>
                     <strong>{{ profile.duplicate_rows }}</strong>
                 </div>
-
             </div>
 
             <h3>Column profile</h3>
 
             <div class="table-wrap">
-
                 <table>
-
                     <thead>
                         <tr>
                             <th>Column</th>
@@ -100,22 +97,16 @@
                     </thead>
 
                     <tbody>
-
                         {% for column in profile.columns %}
-
                         <tr>
                             <td>{{ column.name }}</td>
                             <td>{{ column.dtype }}</td>
                             <td>{{ column.missing }}</td>
                             <td>{{ column.unique }}</td>
                         </tr>
-
                         {% endfor %}
-
                     </tbody>
-
                 </table>
-
             </div>
 
             {% set numeric_columns = profile.columns
@@ -124,13 +115,10 @@
             %}
 
             {% if numeric_columns %}
-
             <h3>Numerical statistics</h3>
 
             <div class="table-wrap">
-
                 <table>
-
                     <thead>
                         <tr>
                             <th>Column</th>
@@ -142,11 +130,8 @@
                     </thead>
 
                     <tbody>
-
                         {% for column in numeric_columns %}
-
                         {% if column.statistics %}
-
                         <tr>
                             <td>{{ column.name }}</td>
                             <td>{{ column.statistics.mean }}</td>
@@ -154,19 +139,49 @@
                             <td>{{ column.statistics.min }}</td>
                             <td>{{ column.statistics.max }}</td>
                         </tr>
-
                         {% endif %}
-
                         {% endfor %}
-
                     </tbody>
-
                 </table>
-
             </div>
-
             {% endif %}
+        </section>
 
+        <section class="panel">
+            <h2>Potential Identifier Detection</h2>
+
+            <p>
+                These findings are rule-based indicators, not confirmation
+                that a column contains personal information.
+            </p>
+
+            {% if pii_findings %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Potential Identifier</th>
+                            <th>Detection Method</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for finding in pii_findings %}
+                        <tr>
+                            <td>{{ finding.column }}</td>
+                            <td>{{ finding.type }}</td>
+                            <td>{{ finding.confidence }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>
+                No potential identifiers detected by the current rules.
+            </p>
+            {% endif %}
         </section>
 
         {% endif %}
@@ -174,3 +189,4 @@
     </main>
 </body>
 </html>
+```
