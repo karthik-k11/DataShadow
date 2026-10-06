@@ -1,10 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataShadow | Dataset Profiling</title>
+    <title>DataShadow | Dataset Privacy Analyzer</title>
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -20,12 +19,13 @@
             </p>
         </header>
 
+        <!-- CSV Upload -->
         <section class="panel">
             <h2>Upload dataset</h2>
 
             <p>
                 Upload a CSV to inspect its structure, statistics,
-                and potential privacy indicators.
+                potential identifiers, and privacy risks.
             </p>
 
             <form method="POST" enctype="multipart/form-data">
@@ -53,6 +53,7 @@
 
         {% if profile %}
 
+        <!-- Dataset Overview -->
         <section class="panel">
             <h2>Dataset overview</h2>
 
@@ -83,6 +84,7 @@
                 </div>
             </div>
 
+            <!-- Column Profile -->
             <h3>Column profile</h3>
 
             <div class="table-wrap">
@@ -109,6 +111,7 @@
                 </table>
             </div>
 
+            <!-- Numerical Statistics -->
             {% set numeric_columns = profile.columns
                 |selectattr("numeric")
                 |list
@@ -147,6 +150,7 @@
             {% endif %}
         </section>
 
+        <!-- Potential Identifier Detection -->
         <section class="panel">
             <h2>Potential Identifier Detection</h2>
 
@@ -178,10 +182,106 @@
                 </table>
             </div>
             {% else %}
-            <p>
-                No potential identifiers detected by the current rules.
-            </p>
+            <p>No potential identifiers detected by the current rules.</p>
             {% endif %}
+        </section>
+
+        <!-- Privacy Risk Analysis -->
+        <section class="panel">
+            <h2>Privacy Risk Analysis</h2>
+
+            <p>
+                Rule-based warnings highlight potential identifiability
+                risks. They do not prove that a dataset is anonymous
+                or unsafe.
+            </p>
+
+            {% if privacy_report and privacy_report.warnings %}
+            <h3>Privacy warnings</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Risk type</th>
+                            <th>Columns</th>
+                            <th>Explanation</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for warning in privacy_report.warnings %}
+                        <tr>
+                            <td>{{ warning.type }}</td>
+                            <td>{{ warning.columns | join(", ") }}</td>
+                            <td>{{ warning.message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No privacy warnings were detected by the current rules.</p>
+            {% endif %}
+
+            <!-- High Uniqueness -->
+            {% if privacy_report and privacy_report.unique_columns %}
+            <h3>High-uniqueness columns</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Unique values</th>
+                            <th>Non-empty values</th>
+                            <th>Uniqueness ratio</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in privacy_report.unique_columns %}
+                        <tr>
+                            <td>{{ item.column }}</td>
+                            <td>{{ item.unique_count }}</td>
+                            <td>{{ item.total_values }}</td>
+                            <td>
+                                {{ (item.uniqueness_ratio * 100) | round(1) }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <!-- Rare Attribute Combinations -->
+            {% if privacy_report and privacy_report.rare_combinations %}
+            <h3>Rare attribute combinations</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Columns</th>
+                            <th>Rare groups</th>
+                            <th>Threshold</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in privacy_report.rare_combinations %}
+                        <tr>
+                            <td>{{ item.columns | join(" + ") }}</td>
+                            <td>{{ item.rare_groups }}</td>
+                            <td>{{ item.threshold }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
         </section>
 
         {% endif %}
@@ -189,4 +289,3 @@
     </main>
 </body>
 </html>
-```
