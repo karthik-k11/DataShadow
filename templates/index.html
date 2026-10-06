@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataShadow | Dataset Profiling</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="container">
+
+        <header>
+            <p class="eyebrow">DATA PRIVACY LABORATORY</p>
+            <h1>DataShadow</h1>
+            <p class="subtitle">
+                Analyze privacy risks. Generate synthetic alternatives.
+            </p>
+        </header>
+
+        <section class="panel">
+            <h2>Upload dataset</h2>
+
+            <p>
+                Upload a CSV to inspect its structure and statistics.
+            </p>
+
+            <form method="POST" enctype="multipart/form-data">
+                <label for="file">CSV file</label>
+
+                <input
+                    type="file"
+                    id="file"
+                    name="file"
+                    accept=".csv,text/csv"
+                    required
+                >
+
+                <button type="submit">
+                    Analyze dataset
+                </button>
+            </form>
+
+            {% if error %}
+                <div class="message error" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+        </section>
+
+        {% if profile %}
+
+        <section class="panel">
+
+            <h2>Dataset overview</h2>
+
+            <p>
+                <strong>Filename:</strong>
+                {{ dataset_info.filename }}
+            </p>
+
+            <div class="stats">
+
+                <div class="stat">
+                    <span>Rows</span>
+                    <strong>{{ profile.row_count }}</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Columns</span>
+                    <strong>{{ profile.column_count }}</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Missing values</span>
+                    <strong>{{ profile.missing_total }}</strong>
+                </div>
+
+                <div class="stat">
+                    <span>Duplicate rows</span>
+                    <strong>{{ profile.duplicate_rows }}</strong>
+                </div>
+
+            </div>
+
+            <h3>Column profile</h3>
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Type</th>
+                            <th>Missing</th>
+                            <th>Unique</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for column in profile.columns %}
+
+                        <tr>
+                            <td>{{ column.name }}</td>
+                            <td>{{ column.dtype }}</td>
+                            <td>{{ column.missing }}</td>
+                            <td>{{ column.unique }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% set numeric_columns = profile.columns
+                |selectattr("numeric")
+                |list
+            %}
+
+            {% if numeric_columns %}
+
+            <h3>Numerical statistics</h3>
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Mean</th>
+                            <th>Median</th>
+                            <th>Minimum</th>
+                            <th>Maximum</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for column in numeric_columns %}
+
+                        {% if column.statistics %}
+
+                        <tr>
+                            <td>{{ column.name }}</td>
+                            <td>{{ column.statistics.mean }}</td>
+                            <td>{{ column.statistics.median }}</td>
+                            <td>{{ column.statistics.min }}</td>
+                            <td>{{ column.statistics.max }}</td>
+                        </tr>
+
+                        {% endif %}
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% endif %}
+
+        </section>
+
+        {% endif %}
+
+    </main>
+</body>
+</html>
