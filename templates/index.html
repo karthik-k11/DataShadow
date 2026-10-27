@@ -1,291 +1,709 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataShadow | Dataset Privacy Analyzer</title>
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+    <title>DataShadow — Privacy Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6f3;
+            color: #202b25;
+        }
+        .app { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 225px;
+            flex-shrink: 0;
+            background: #17251f;
+            color: #e8f1eb;
+            padding: 26px 16px;
+        }
+        .brand { font-size: 19px; font-weight: 700; margin-bottom: 42px; }
+        .brand small {
+            display: block;
+            color: #91b5a2;
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 5px;
+        }
+        .nav-label {
+            color: #91a49a;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 24px 8px 12px;
+        }
+        .nav a {
+            display: block;
+            padding: 12px;
+            margin-bottom: 5px;
+            color: #d5e0d9;
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 7px;
+        }
+        .nav a:hover, .nav a.active {
+            background: #294638;
+            color: white;
+        }
+        .main { flex: 1; min-width: 0; padding: 32px; }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            font-size: 12px;
+            color: #68766d;
+        }
+        .status { color: #347956; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .eyebrow {
+            color: #397a57;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+        }
+        h1 { font-size: 32px; margin: 12px 0; letter-spacing: -1px; }
+        h2 { font-size: 19px; margin: 0; }
+        h3 { font-size: 15px; }
+        p { color: #718077; line-height: 1.6; font-size: 13px; }
+        .hero {
+            background: #e5eee6;
+            border: 1px solid #d8e4d9;
+            border-radius: 14px;
+            padding: 36px;
+            margin-bottom: 30px;
+        }
+        .hero p { max-width: 560px; }
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin: 28px 0 16px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .card, .panel {
+            background: white;
+            border: 1px solid #e1e6e0;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 7px rgba(20, 40, 28, .025);
+        }
+        .metric-label { font-size: 12px; color: #69776e; }
+        .metric { display: block; font-size: 27px; margin: 12px 0 6px; }
+        .muted { font-size: 11px; color: #849087; }
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .action {
+            padding: 22px;
+            border: 1px solid #e1e6e0;
+            border-radius: 10px;
+            background: white;
+            text-decoration: none;
+            color: inherit;
+        }
+        .action:hover { border-color: #83a891; transform: translateY(-1px); }
+        .action strong { display: block; font-size: 14px; margin-bottom: 7px; }
+        .action span { color: #748178; font-size: 12px; }
+        .button {
+            display: inline-block;
+            background: #27734e;
+            color: white;
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .button:hover { background: #1e5c3e; }
+        .button-secondary { background: #eef3ef; color: #315c43; }
+        .button-secondary:hover { background: #e1ebe3; }
+        input[type="file"], input[type="number"], input[type="text"], select {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0 18px;
+            border: 1px solid #dce3dc;
+            border-radius: 6px;
+            background: white;
+        }
+        input[type="checkbox"] { margin-right: 8px; }
+        .empty {
+            text-align: center;
+            padding: 38px 20px;
+            border: 1px dashed #cddbd0;
+            border-radius: 8px;
+            background: #fafcf9;
+        }
+        .empty strong { display: block; margin-bottom: 8px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #edf0ec;
+            text-align: left;
+            white-space: nowrap;
+        }
+        th { color: #69766e; font-weight: 600; background: #f8faf7; }
+        .message { padding: 13px 16px; margin-bottom: 18px; border-radius: 7px; font-size: 13px; }
+        .error { background: #fff0ee; color: #a33f32; }
+        .success { background: #eaf5ec; color: #286643; }
+        .footer {
+            margin-top: 42px;
+            padding-top: 18px;
+            border-top: 1px solid #e1e6e0;
+            font-size: 10px;
+            color: #879188;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .main { padding: 22px; }
+        }
+        @media (max-width: 600px) {
+            .app { display: block; }
+            .sidebar { width: 100%; padding: 16px; }
+            .brand { margin-bottom: 18px; }
+            .nav-label { margin-top: 14px; }
+            .nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+            .nav a { margin: 0; }
+            .main { padding: 18px 14px; }
+            h1 { font-size: 27px; }
+            .hero { padding: 24px; }
+            .grid, .actions { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
-
 <body>
-    <main class="container">
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            DataShadow
+            <small>Privacy Intelligence</small>
+        </div>
 
-        <header>
-            <p class="eyebrow">DATA PRIVACY LABORATORY</p>
-            <h1>DataShadow</h1>
-            <p class="subtitle">
-                Analyze privacy risks. Generate synthetic alternatives.
-            </p>
-        </header>
+        <div class="nav-label">Workspace</div>
+        <nav class="nav">
+            <a class="{% if page == 'overview' %}active{% endif %}" href="{{ url_for('index') }}">⌂ &nbsp; Overview</a>
+            <a class="{% if page == 'upload' %}active{% endif %}" href="{{ url_for('upload_page') }}">↥ &nbsp; Upload &amp; Analyze</a>
+            <a class="{% if page == 'synthetic' %}active{% endif %}" href="{{ url_for('synthetic_page') }}">▤ &nbsp; Generate Synthetic</a>
+            <a class="{% if page == 'compare' %}active{% endif %}" href="{{ url_for('compare_page') }}">▥ &nbsp; Compare Data</a>
+            <a class="{% if page == 'history' %}active{% endif %}" href="{{ url_for('history_page') }}">◷ &nbsp; Analysis History</a>
+        </nav>
 
-        <!-- CSV Upload -->
-        <section class="panel">
-            <h2>Upload dataset</h2>
+        <div style="margin-top:48px;font-size:11px;color:#a4b6aa;line-height:1.8">
+            <strong>◇ Your data stays local</strong>
+            <p style="color:#a4b6aa">Explore data quality, privacy risks and synthetic alternatives.</p>
+        </div>
+    </aside>
 
-            <p>
-                Upload a CSV to inspect its structure, statistics,
-                potential identifiers, and privacy risks.
-            </p>
-
-            <form method="POST" enctype="multipart/form-data">
-                <label for="file">CSV file</label>
-
-                <input
-                    type="file"
-                    id="file"
-                    name="file"
-                    accept=".csv,text/csv"
-                    required
-                >
-
-                <button type="submit">
-                    Analyze dataset
-                </button>
-            </form>
+    <main class="main">
+        <div class="container">
+            <header class="topbar">
+                <span>Workspace /
+                    {% if page == 'overview' %}Overview
+                    {% elif page == 'upload' %}Upload &amp; Analyze
+                    {% elif page == 'synthetic' %}Generate Synthetic
+                    {% elif page == 'compare' %}Compare Data
+                    {% else %}Analysis History{% endif %}
+                </span>
+                <span class="status">● Local analysis</span>
+            </header>
 
             {% if error %}
-                <div class="message error" role="alert">
-                    {{ error }}
-                </div>
+            <div class="message error">{{ error }}</div>
             {% endif %}
-        </section>
-
-        {% if profile %}
-
-        <!-- Dataset Overview -->
-        <section class="panel">
-            <h2>Dataset overview</h2>
-
-            <p>
-                <strong>Filename:</strong>
-                {{ dataset_info.filename }}
-            </p>
-
-            <div class="stats">
-                <div class="stat">
-                    <span>Rows</span>
-                    <strong>{{ profile.row_count }}</strong>
-                </div>
-
-                <div class="stat">
-                    <span>Columns</span>
-                    <strong>{{ profile.column_count }}</strong>
-                </div>
-
-                <div class="stat">
-                    <span>Missing values</span>
-                    <strong>{{ profile.missing_total }}</strong>
-                </div>
-
-                <div class="stat">
-                    <span>Duplicate rows</span>
-                    <strong>{{ profile.duplicate_rows }}</strong>
-                </div>
-            </div>
-
-            <!-- Column Profile -->
-            <h3>Column profile</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Column</th>
-                            <th>Type</th>
-                            <th>Missing</th>
-                            <th>Unique</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for column in profile.columns %}
-                        <tr>
-                            <td>{{ column.name }}</td>
-                            <td>{{ column.dtype }}</td>
-                            <td>{{ column.missing }}</td>
-                            <td>{{ column.unique }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Numerical Statistics -->
-            {% set numeric_columns = profile.columns
-                |selectattr("numeric")
-                |list
-            %}
-
-            {% if numeric_columns %}
-            <h3>Numerical statistics</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Column</th>
-                            <th>Mean</th>
-                            <th>Median</th>
-                            <th>Minimum</th>
-                            <th>Maximum</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for column in numeric_columns %}
-                        {% if column.statistics %}
-                        <tr>
-                            <td>{{ column.name }}</td>
-                            <td>{{ column.statistics.mean }}</td>
-                            <td>{{ column.statistics.median }}</td>
-                            <td>{{ column.statistics.min }}</td>
-                            <td>{{ column.statistics.max }}</td>
-                        </tr>
-                        {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% if history_message %}
+            <div class="message success">{{ history_message }}</div>
             {% endif %}
-        </section>
 
-        <!-- Potential Identifier Detection -->
-        <section class="panel">
-            <h2>Potential Identifier Detection</h2>
+            {% if page == 'overview' %}
+            <section class="hero">
+                <span class="eyebrow">DATA INTELLIGENCE</span>
+                <h1>Understand your data.<br>Make privacy visible.</h1>
+                <p>Explore data quality, identify potential privacy risks, generate synthetic alternatives, and compare statistical properties.</p>
+                <a class="button" href="{{ url_for('upload_page') }}">Start an analysis →</a>
+            </section>
 
-            <p>
-                These findings are rule-based indicators, not confirmation
-                that a column contains personal information.
-            </p>
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">WORKSPACE OVERVIEW</span>
+                    <h2 style="margin-top:8px">Dashboard Summary</h2>
+                </div>
+            </div>
+
+            <section class="grid">
+                <article class="card">
+                    <span class="metric-label">Recent analyses</span>
+                    <strong class="metric">{{ history_summary.recent_analyses }}</strong>
+                    <span class="muted">Latest records</span>
+                </article>
+                <article class="card">
+                    <span class="metric-label">Analyses with warnings</span>
+                    <strong class="metric">{{ history_summary.analyses_with_warnings }}</strong>
+                    <span class="muted">Privacy warnings</span>
+                </article>
+                <article class="card">
+                    <span class="metric-label">Synthetic generations</span>
+                    <strong class="metric">{{ history_summary.synthetic_generations }}</strong>
+                    <span class="muted">Recorded generations</span>
+                </article>
+                <article class="card">
+                    <span class="metric-label">Synthetic rows generated</span>
+                    <strong class="metric">{{ "{:,}".format(history_summary.synthetic_rows_generated) }}</strong>
+                    <span class="muted">Across recent records</span>
+                </article>
+            </section>
+
+            <div class="section-heading"><h2>Choose your next step</h2></div>
+            <section class="actions">
+                <a class="action" href="{{ url_for('upload_page') }}">
+                    <strong>01 / Upload &amp; Analyze ↗</strong>
+                    <span>Inspect data structure, quality and privacy risks.</span>
+                </a>
+                <a class="action" href="{{ url_for('synthetic_page') }}">
+                    <strong>02 / Generate Synthetic ↗</strong>
+                    <span>Create a synthetic dataset from your upload.</span>
+                </a>
+                <a class="action" href="{{ url_for('compare_page') }}">
+                    <strong>03 / Compare Data ↗</strong>
+                    <span>Review statistical utility metrics.</span>
+                </a>
+                <a class="action" href="{{ url_for('history_page') }}">
+                    <strong>04 / Analysis History ↗</strong>
+                    <span>Browse saved analysis summaries.</span>
+                </a>
+            </section>
+
+            <div class="section-heading"><h2>Active dataset</h2></div>
+            <section class="panel">
+                {% if has_active_dataset and dataset_info and profile %}
+                <strong>{{ dataset_info.filename }}</strong>
+                <p>{{ "{:,}".format(profile.row_count) }} rows · {{ profile.column_count }} columns</p>
+                <a class="button button-secondary" href="{{ url_for('upload_page') }}">View analysis</a>
+                {% else %}
+                <div class="empty">
+                    <strong>No active dataset</strong>
+                    <p>Upload a CSV file to start exploring your data.</p>
+                    <a class="button" href="{{ url_for('upload_page') }}">Upload a dataset →</a>
+                </div>
+                {% endif %}
+            </section>
+
+            {% if not history %}
+            <section class="panel" style="margin-top:18px">
+                <strong>No analysis history yet</strong>
+                <p>Your saved analysis summaries will appear here.</p>
+            </section>
+            {% endif %}
+
+            {% elif page == 'upload' %}
+            <section class="hero">
+                <span class="eyebrow">DATA INTAKE</span>
+                <h1>Upload &amp; Analyze</h1>
+                <p>Upload a CSV to inspect its structure, quality and potential privacy risks.</p>
+            </section>
+            <section class="panel">
+                {% if has_active_dataset and dataset_info and profile %}
+                <strong>Current dataset: {{ dataset_info.filename }}</strong>
+                <p>{{ "{:,}".format(profile.row_count) }} rows · {{ profile.column_count }} columns</p>
+                {% endif %}
+                <form method="POST" action="{{ url_for('index') }}" enctype="multipart/form-data">
+                    <label for="file"><strong>Select a CSV file</strong></label>
+                    <input id="file" type="file" name="file" accept=".csv,text/csv" required>
+                    <button class="button" type="submit" name="action" value="analyze">Analyze dataset →</button>
+                </form>
+            </section>
+
+            {% if profile and dataset_info %}
+            <section class="grid" style="margin-top:20px">
+                <article class="card"><span class="metric-label">Rows</span><strong class="metric">{{ profile.row_count }}</strong></article>
+                <article class="card"><span class="metric-label">Columns</span><strong class="metric">{{ profile.column_count }}</strong></article>
+                <article class="card"><span class="metric-label">Missing values</span><strong class="metric">{{ profile.missing_total }}</strong></article>
+                <article class="card"><span class="metric-label">Duplicate rows</span><strong class="metric">{{ profile.duplicate_rows }}</strong></article>
+            </section>
+
+            <section class="panel" style="margin-top:20px">
+                <h2>Column overview</h2>
+                <div class="table-wrap" style="margin-top:16px">
+                    <table>
+                        <thead><tr><th>Column</th><th>Type</th><th>Missing</th><th>Unique</th></tr></thead>
+                        <tbody>
+                            {% for column in profile.columns %}
+                            <tr><td>{{ column.name }}</td><td>{{ column.dtype }}</td><td>{{ column.missing }}</td><td>{{ column.unique }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             {% if pii_findings %}
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Column</th>
-                            <th>Potential Identifier</th>
-                            <th>Detection Method</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for finding in pii_findings %}
-                        <tr>
-                            <td>{{ finding.column }}</td>
-                            <td>{{ finding.type }}</td>
-                            <td>{{ finding.confidence }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p>No potential identifiers detected by the current rules.</p>
+            <section class="panel" style="margin-top:20px">
+                <h2>Potential identifiers</h2>
+                <div class="table-wrap" style="margin-top:16px">
+                    <table><thead><tr><th>Column</th><th>Type</th><th>Detection</th></tr></thead>
+                        <tbody>{% for finding in pii_findings %}
+                            <tr><td>{{ finding.column }}</td><td>{{ finding.type }}</td><td>{{ finding.confidence }}</td></tr>
+                        {% endfor %}</tbody>
+                    </table>
+                </div>
+            </section>
             {% endif %}
-        </section>
-
-        <!-- Privacy Risk Analysis -->
-        <section class="panel">
-            <h2>Privacy Risk Analysis</h2>
-
-            <p>
-                Rule-based warnings highlight potential identifiability
-                risks. They do not prove that a dataset is anonymous
-                or unsafe.
-            </p>
 
             {% if privacy_report and privacy_report.warnings %}
-            <h3>Privacy warnings</h3>
+            <section class="panel" style="margin-top:20px">
+                <h2>Privacy warnings</h2>
+                <div class="table-wrap" style="margin-top:16px">
+                    <table><thead><tr><th>Type</th><th>Columns</th><th>Details</th></tr></thead>
+                        <tbody>{% for warning in privacy_report.warnings %}
+                            <tr><td>{{ warning.type }}</td><td>{{ warning.columns | join(", ") }}</td><td>{{ warning.message }}</td></tr>
+                        {% endfor %}</tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Risk type</th>
-                            <th>Columns</th>
-                            <th>Explanation</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for warning in privacy_report.warnings %}
-                        <tr>
-                            <td>{{ warning.type }}</td>
-                            <td>{{ warning.columns | join(", ") }}</td>
-                            <td>{{ warning.message }}</td>
-                        </tr>
+            {% if data_quality_report and data_quality_report.findings %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Data quality findings</h2>
+                <div class="table-wrap" style="margin-top:16px">
+                    <table><thead><tr><th>Issue</th><th>Column</th><th>Count</th><th>Details</th></tr></thead>
+                        <tbody>{% for finding in data_quality_report.findings %}
+                            <tr><td>{{ finding.type }}</td><td>{{ finding.column | default("—") }}</td><td>{{ finding.count }}</td><td>{{ finding.message }}</td></tr>
+                        {% endfor %}</tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Privacy analysis settings</h2>
+                <p>Select quasi-identifiers to calculate exact equivalence-class group sizes. No columns are selected automatically.</p>
+                <form method="POST" action="{{ url_for('index') }}">
+                    <input type="hidden" name="action" value="privacy">
+                    <div class="grid">
+                        {% for column in profile.columns %}
+                        <label class="card" style="padding:12px">
+                            <input type="checkbox" name="quasi_identifiers" value="{{ column.name }}"
+                                {% if column.name in privacy_options.quasi_identifiers %}checked{% endif %}>
+                            {{ column.name }}
+                        </label>
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                    <label for="privacy_rare_threshold">Rare-combination frequency threshold</label>
+                    <input id="privacy_rare_threshold" type="number" name="rare_threshold" min="1" value="{{ privacy_options.rare_threshold }}">
+                    <label for="privacy_uniqueness_threshold">High-uniqueness ratio threshold (0–1)</label>
+                    <input id="privacy_uniqueness_threshold" type="number" name="uniqueness_threshold" min="0.01" max="1" step="0.01" value="{{ privacy_options.uniqueness_threshold }}">
+                    <label for="minimum_group_size">Minimum quasi-identifier group size</label>
+                    <input id="minimum_group_size" type="number" name="minimum_group_size" min="1" value="{{ privacy_options.minimum_group_size }}">
+                    <button class="button button-secondary" type="submit">Update privacy analysis</button>
+                </form>
+                {% if privacy_report.quasi_identifier_analysis.columns %}
+                <p class="muted">Selected columns: {{ privacy_report.quasi_identifier_analysis.columns | join(", ") }} · Minimum observed group: {{ privacy_report.quasi_identifier_analysis.minimum_observed_group_size }} · Groups below minimum: {{ privacy_report.quasi_identifier_analysis.small_group_count }}</p>
+                <p class="muted">{{ privacy_report.quasi_identifier_analysis.limitation }}</p>
+                {% endif %}
+            </section>
+            <a class="button" href="{{ url_for('synthetic_page') }}">Continue to synthetic generation →</a>
+            {% endif %}
+
+            {% elif page == 'synthetic' %}
+            <section class="hero">
+                <span class="eyebrow">DATA GENERATION</span>
+                <h1>Generate Synthetic Data</h1>
+                <p>Generate synthetic rows using the dataset already uploaded in this app session.</p>
+            </section>
+            {% if has_active_dataset and dataset_info %}
+            <section class="panel">
+                <strong>Source: {{ dataset_info.filename }}</strong>
+                <p>{{ profile.row_count }} rows · {{ profile.column_count }} columns</p>
+                <form method="POST" action="{{ url_for('index') }}">
+                    <input type="hidden" name="action" value="generate">
+                    <label for="row_count">Number of synthetic rows</label>
+                    <input id="row_count" type="number" name="row_count" min="1" max="10000" value="{{ row_count or 100 }}" required>
+                    <label for="random_seed">Reproducible random seed</label>
+                    <input id="random_seed" type="number" name="random_seed" min="0" max="4294967295" value="{{ generation_config.random_seed if generation_config else 42 }}">
+
+                    <label for="strategy">Sampling strategy</label>
+                    <select id="strategy" name="strategy">
+                        <option value="independent" {% if not generation_config or generation_config.strategy == 'independent' %}selected{% endif %}>Independent statistical sampling</option>
+                        <option value="joint" {% if generation_config and generation_config.strategy == 'joint' %}selected{% endif %}>Joint complete-row resampling</option>
+                        <option value="stratified" {% if generation_config and generation_config.strategy == 'stratified' %}selected{% endif %}>Stratified complete-row resampling</option>
+                    </select>
+                    <p class="muted">Joint and stratified sampling can reproduce original records. Stratification preserves source group proportions.</p>
+
+                    <label for="missing_strategy">Missing-value handling</label>
+                    <select id="missing_strategy" name="missing_strategy">
+                        <option value="preserve" {% if not generation_config or generation_config.missing_strategy == 'preserve' %}selected{% endif %}>Preserve approximate missingness</option>
+                        <option value="impute" {% if generation_config and generation_config.missing_strategy == 'impute' %}selected{% endif %}>Impute median or mode</option>
+                        <option value="complete_cases" {% if generation_config and generation_config.missing_strategy == 'complete_cases' %}selected{% endif %}>Use complete source rows only</option>
+                    </select>
+
+                    <label for="numerical_strategy">Numerical sampling</label>
+                    <p class="muted">Numerical and categorical sampling settings apply to independent sampling only. Joint and stratified modes resample complete rows.</p>
+                    <select id="numerical_strategy" name="numerical_strategy">
+                        <option value="normal" {% if not generation_config or generation_config.numerical_strategy == 'normal' %}selected{% endif %}>Normal model, clipped to observed range</option>
+                        <option value="empirical" {% if generation_config and generation_config.numerical_strategy == 'empirical' %}selected{% endif %}>Empirical value resampling</option>
+                    </select>
+                    <label for="categorical_strategy">Categorical sampling</label>
+                    <select id="categorical_strategy" name="categorical_strategy">
+                        <option value="weighted" {% if not generation_config or generation_config.categorical_strategy == 'weighted' %}selected{% endif %}>Observed frequency-weighted</option>
+                        <option value="uniform" {% if generation_config and generation_config.categorical_strategy == 'uniform' %}selected{% endif %}>Uniform over observed categories</option>
+                    </select>
+
+                    <h3>Optional column constraints</h3>
+                    <p class="muted">Ranges are clipped within observed numeric support. Categorical options use a JSON array of strings already present in the source. Constraints on excluded direct-identifier columns are rejected.</p>
+                    {% for column in profile.columns %}
+                    <div class="card" style="margin:10px 0;padding:14px">
+                        <strong>{{ column.name }}</strong>
+                        {% if column.numeric %}
+                        {% set existing_range = generation_form_constraints.ranges.get(column.name) if generation_form_constraints else none %}
+                        <input type="number" step="any" name="range_min_{{ loop.index0 }}" placeholder="Minimum (optional)" value="{{ existing_range[0] if existing_range else '' }}">
+                        <input type="number" step="any" name="range_max_{{ loop.index0 }}" placeholder="Maximum (optional)" value="{{ existing_range[1] if existing_range else '' }}">
+                        {% else %}
+                        <input type="text" name="category_values_{{ loop.index0 }}" placeholder='JSON array of allowed existing strings, e.g. ["north", "south"]' value="{{ generation_form_constraints.categories.get(column.name, '') if generation_form_constraints else '' }}">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <h3>Privacy analysis options</h3>
+                    <p class="muted">Select quasi-identifiers for exact group-size checks. Sensitive attributes are only used for aggregate concentration statistics; values are not included in reports.</p>
+                    <div class="grid">
+                        {% for column in profile.columns %}
+                        <label class="card" style="padding:12px">
+                            <input type="checkbox" name="quasi_identifiers" value="{{ column.name }}"
+                                {% if column.name in privacy_options.quasi_identifiers %}checked{% endif %}>
+                            Quasi-identifier: {{ column.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="grid">
+                        {% for column in profile.columns %}
+                        <label class="card" style="padding:12px">
+                            <input type="checkbox" name="sensitive_attributes" value="{{ column.name }}"
+                                {% if generation_config and column.name in generation_config.sensitive_attribute_columns %}checked{% endif %}>
+                            Sensitive attribute: {{ column.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <label for="generation_minimum_group_size">Minimum quasi-identifier group size</label>
+                    <input id="generation_minimum_group_size" type="number" name="minimum_group_size" min="1" value="{{ privacy_options.minimum_group_size }}">
+                    <label for="generation_rare_threshold">Rare-record threshold</label>
+                    <input id="generation_rare_threshold" type="number" name="rare_threshold" min="1" value="{{ privacy_options.rare_threshold }}">
+                    <label for="generation_uniqueness_threshold">Uniqueness threshold (0–1)</label>
+                    <input id="generation_uniqueness_threshold" type="number" name="uniqueness_threshold" min="0.01" max="1" step="0.01" value="{{ privacy_options.uniqueness_threshold }}">
+
+                    <h3>Stratification columns</h3>
+                    <p class="muted">Select columns only when using the stratified strategy; selecting them for another strategy is rejected.</p>
+                    <div class="grid">
+                        {% for column in profile.columns %}
+                        <label class="card" style="padding:12px">
+                            <input type="checkbox" name="stratify_by" value="{{ column.name }}"
+                                {% if generation_config and column.name in generation_config.stratification_columns %}checked{% endif %}>
+                            {{ column.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <button class="button" type="submit">Generate synthetic data →</button>
+                </form>
+            </section>
+            {% if synthetic_columns %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Synthetic preview</h2>
+                <div class="table-wrap" style="margin-top:16px">
+                    <table>
+                        <thead><tr>{% for column in synthetic_columns %}<th>{{ column }}</th>{% endfor %}</tr></thead>
+                        <tbody>{% for row in synthetic_preview %}
+                            <tr>{% for column in synthetic_columns %}<td>{{ row[column] }}</td>{% endfor %}</tr>
+                        {% endfor %}</tbody>
+                    </table>
+                </div>
+                {% if download_token %}
+                <p><a class="button" href="{{ url_for('download_synthetic', token=download_token) }}">Download CSV ↓</a></p>
+                {% endif %}
+                <a class="button button-secondary" href="{{ url_for('compare_page') }}">Compare data →</a>
+                <p class="muted">Synthetic data is not guaranteed to be anonymous.</p>
+            </section>
+            {% endif %}
+            {% if generation_config %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Generation configuration</h2>
+                <p>{{ generation_config.strategy_description }}</p>
+                <p class="muted">Strategy: {{ generation_config.strategy }} · Missing values: {{ generation_config.missing_strategy }} · Numerical: {{ generation_config.numerical_strategy }} · Categorical: {{ generation_config.categorical_strategy }} · Per-column strategies applied: {{ generation_config.per_column_strategies_applied }} · Seed: {{ generation_config.random_seed }} · Range constraints: {{ generation_config.range_constraint_count }} · Category constraints: {{ generation_config.categorical_constraint_count }}</p>
+                <p class="muted">Quasi-identifiers: {{ generation_config.quasi_identifier_columns | join(", ") if generation_config.quasi_identifier_columns else "none" }} · Sensitive attributes selected for aggregate analysis: {{ generation_config.sensitive_attribute_columns | join(", ") if generation_config.sensitive_attribute_columns else "none" }}</p>
+                <p class="muted">Constraint columns: {{ (generation_config.range_constrained_columns + generation_config.categorical_constrained_columns) | join(", ") if generation_config.range_constrained_columns or generation_config.categorical_constrained_columns else "none" }} · Privacy thresholds — uniqueness {{ generation_config.privacy_thresholds.uniqueness_ratio }}, rare count {{ generation_config.privacy_thresholds.rare_value_count }}, minimum group size {{ generation_config.privacy_thresholds.minimum_group_size }}</p>
+                {% if generation_config.stratification_columns %}
+                <p class="muted">Stratification columns: {{ generation_config.stratification_columns | join(", ") }}</p>
+                {% endif %}
+            </section>
+            {% endif %}
+            {% if privacy_evaluation %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Empirical privacy evaluation</h2>
+                <p>These experiments measure overlap and similarity; they are not attack-success rates or formal privacy guarantees.</p>
+                {% if report_download_token %}
+                <a class="button button-secondary" href="{{ url_for('download_privacy_report', token=report_download_token) }}">Download evaluation CSV ↓</a>
+                {% endif %}
+                <div class="table-wrap" style="margin-top:16px">
+                    <table>
+                        <thead><tr><th>Risk category</th><th>Experiment</th><th>Result</th><th>Interpretation</th><th>Severity</th><th>Limitations</th></tr></thead>
+                        <tbody>{% for item in privacy_evaluation.experiments %}
+                            <tr>
+                                <td>{{ item.category }}</td>
+                                <td>{{ item.name }}</td>
+                                <td><code>{{ item.result | tojson }}</code></td>
+                                <td>{{ item.interpretation }}</td>
+                                <td>{{ item.severity or "Not rated" }}</td>
+                                <td>{{ item.limitations }}</td>
+                            </tr>
+                        {% endfor %}</tbody>
+                    </table>
+                </div>
+                <ul>{% for recommendation in privacy_utility_report.recommendations %}
+                    <li>{{ recommendation }}</li>
+                {% endfor %}</ul>
+                <p class="muted">No sensitive values or original records are included in this report.</p>
+            </section>
+            {% endif %}
+            {% if privacy_utility_report %}
+            <details class="panel" style="margin-top:20px">
+                <summary><strong>Consolidated privacy–utility report</strong></summary>
+                <p>Privacy risk and statistical utility are reported as separate dimensions, without a combined score.</p>
+                <pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{ privacy_utility_report | tojson(indent=2) }}</pre>
+            </details>
+            {% endif %}
             {% else %}
-            <p>No privacy warnings were detected by the current rules.</p>
+            <section class="panel empty">
+                <strong>Upload a dataset first</strong>
+                <p>Analyze a CSV before generating synthetic data.</p>
+                <a class="button" href="{{ url_for('upload_page') }}">Upload &amp; Analyze →</a>
+            </section>
             {% endif %}
 
-            <!-- High Uniqueness -->
-            {% if privacy_report and privacy_report.unique_columns %}
-            <h3>High-uniqueness columns</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Column</th>
-                            <th>Unique values</th>
-                            <th>Non-empty values</th>
-                            <th>Uniqueness ratio</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for item in privacy_report.unique_columns %}
-                        <tr>
-                            <td>{{ item.column }}</td>
-                            <td>{{ item.unique_count }}</td>
-                            <td>{{ item.total_values }}</td>
-                            <td>
-                                {{ (item.uniqueness_ratio * 100) | round(1) }}%
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% elif page == 'compare' %}
+            <section class="hero">
+                <span class="eyebrow">UTILITY EVALUATION</span>
+                <h1>Compare Data</h1>
+                <p>Review statistical similarities between original and synthetic data.</p>
+            </section>
+            {% if has_active_dataset and dataset_info %}
+            <section class="panel">
+                <h2>{{ dataset_info.filename }}</h2>
+                {% if utility_report %}
+                    {% if utility_warning %}<div class="message success">{{ utility_warning }}</div>{% endif %}
+                    {% if utility_report.numerical %}
+                    <h3>Numerical comparison</h3>
+                    <div class="table-wrap"><table>
+                        <thead><tr><th>Column</th><th>Original mean</th><th>Synthetic mean</th><th>Mean difference</th><th>Std difference</th><th>Median difference</th><th>Wasserstein distance</th><th>KS statistic</th></tr></thead>
+                        <tbody>{% for item in utility_report.numerical %}
+                            {% if item.available %}
+                            <tr><td>{{ item.column }}</td><td>{{ item.original.mean | round(3) }}</td><td>{{ item.synthetic.mean | round(3) }}</td><td>{{ item.mean_difference | round(3) }}</td><td>{{ item.std_difference | round(3) }}</td><td>{{ item.median_difference | round(3) }}</td><td>{{ item.wasserstein_distance | round(3) }}</td><td>{{ item.ks_statistic | round(3) if item.ks_statistic is not none else "Insufficient sample" }}</td></tr>
+                            {% else %}
+                            <tr><td>{{ item.column }}</td><td colspan="7">{{ item.reason }}</td></tr>
+                            {% endif %}
+                        {% endfor %}</tbody>
+                    </table></div>
+                    {% endif %}
+                    {% if utility_report.categorical %}
+                    <h3>Categorical comparison</h3>
+                    <div class="table-wrap"><table>
+                        <thead><tr><th>Column</th><th>Original categories</th><th>Synthetic categories</th><th>Coverage</th><th>Total variation distance</th><th>Frequency similarity</th></tr></thead>
+                        <tbody>{% for item in utility_report.categorical %}
+                            <tr><td>{{ item.column }}</td><td>{{ item.original_category_count }}</td><td>{{ item.synthetic_category_count }}</td><td>{{ (item.category_coverage * 100) | round(1) if item.category_coverage is not none else "N/A" }}</td><td>{{ item.total_variation_distance | round(3) }}</td><td>{{ item.frequency_similarity | round(3) }}</td></tr>
+                        {% endfor %}</tbody>
+                    </table></div>
+                    {% endif %}
+                    {% if utility_report.correlation %}
+                    <h3>Numeric correlation structure</h3>
+                    <p>Columns: {{ utility_report.correlation.columns | join(", ") }} · Mean absolute correlation difference: {{ utility_report.correlation.mean_absolute_difference | round(3) }}</p>
+                    {% endif %}
+                    {% if utility_report.missingness %}
+                    <h3>Missingness comparison</h3>
+                    <div class="table-wrap"><table>
+                        <thead><tr><th>Column</th><th>Original missing fraction</th><th>Synthetic missing fraction</th></tr></thead>
+                        <tbody>{% for item in utility_report.missingness %}
+                            <tr><td>{{ item.column }}</td><td>{{ item.original_missing_fraction | round(3) if item.original_missing_fraction is not none else "N/A" }}</td><td>{{ item.synthetic_missing_fraction | round(3) if item.synthetic_missing_fraction is not none else "N/A" }}</td></tr>
+                        {% endfor %}</tbody>
+                    </table></div>
+                    {% endif %}
+                    <details><summary>Metric definitions and limitations</summary>
+                        <ul>{% for name, definition in utility_report.definitions.items() %}
+                            <li><strong>{{ name }}:</strong> {{ definition }}</li>
+                        {% endfor %}</ul>
+                        <ul>{% for limitation in utility_report.limitations %}
+                            <li>{{ limitation }}</li>
+                        {% endfor %}</ul>
+                    </details>
+                {% else %}
+                    <div class="empty"><strong>No comparison available yet</strong><p>Generate synthetic data to calculate utility metrics.</p><a class="button" href="{{ url_for('synthetic_page') }}">Generate synthetic data →</a></div>
+                {% endif %}
+                <p class="muted">Utility similarity is not a privacy guarantee.</p>
+            </section>
+            {% if privacy_evaluation %}
+            <section class="panel" style="margin-top:20px">
+                <h2>Privacy evaluation summary</h2>
+                {% for item in privacy_evaluation.experiments %}
+                <p><strong>{{ item.category }} / {{ item.name }}:</strong> {{ item.interpretation }} <code>{{ item.result | tojson }}</code></p>
+                {% endfor %}
+                {% if report_download_token %}
+                <a class="button button-secondary" href="{{ url_for('download_privacy_report', token=report_download_token) }}">Download evaluation CSV ↓</a>
+                {% endif %}
+                <p class="muted">Measured statistics are diagnostics only and do not establish anonymity or differential privacy.</p>
+            </section>
+            {% endif %}
+            {% else %}
+            <section class="panel empty"><strong>No active dataset</strong><p>Upload a CSV before comparing data.</p><a class="button" href="{{ url_for('upload_page') }}">Upload &amp; Analyze →</a></section>
             {% endif %}
 
-            <!-- Rare Attribute Combinations -->
-            {% if privacy_report and privacy_report.rare_combinations %}
-            <h3>Rare attribute combinations</h3>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Columns</th>
-                            <th>Rare groups</th>
-                            <th>Threshold</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for item in privacy_report.rare_combinations %}
-                        <tr>
-                            <td>{{ item.columns | join(" + ") }}</td>
-                            <td>{{ item.rare_groups }}</td>
-                            <td>{{ item.threshold }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% elif page == 'history' %}
+            <section class="hero">
+                <span class="eyebrow">ACTIVITY LOG</span>
+                <h1>Analysis History</h1>
+                <p>Review saved analysis summaries from recent runs.</p>
+            </section>
+            <section class="grid">
+                <article class="card"><span class="metric-label">Recent analyses</span><strong class="metric">{{ history_summary.recent_analyses }}</strong></article>
+                <article class="card"><span class="metric-label">With warnings</span><strong class="metric">{{ history_summary.analyses_with_warnings }}</strong></article>
+                <article class="card"><span class="metric-label">Synthetic generations</span><strong class="metric">{{ history_summary.synthetic_generations }}</strong></article>
+                <article class="card"><span class="metric-label">Synthetic rows</span><strong class="metric">{{ "{:,}".format(history_summary.synthetic_rows_generated) }}</strong></article>
+            </section>
+            <section class="panel">
+                {% if history %}
+                <div class="table-wrap"><table>
+                    <thead><tr><th>Filename</th><th>Rows</th><th>Columns</th><th>Warnings</th><th>Synthetic rows</th><th>Date</th></tr></thead>
+                    <tbody>{% for item in history %}
+                        <tr><td>{{ item.filename }}</td><td>{{ item.row_count }}</td><td>{{ item.column_count }}</td><td>{{ item.privacy_warning_count }}</td><td>{{ item.synthetic_row_count if item.synthetic_row_count is not none else "—" }}</td><td>{{ item.analyzed_at }}</td></tr>
+                    {% endfor %}</tbody>
+                </table></div>
+                <form action="{{ url_for('clear_history_route') }}" method="POST" style="margin-top:18px" onsubmit="return confirm('Clear all saved analysis history?');">
+                    <button class="button button-secondary" type="submit">Clear history</button>
+                </form>
+                {% else %}
+                <div class="empty"><strong>No analysis history yet</strong><p>Your saved analysis summaries will appear here.</p></div>
+                {% endif %}
+                <p class="muted">History contains summaries, not the original CSV data.</p>
+            </section>
             {% endif %}
 
-        </section>
-
-        {% endif %}
-
+            <footer class="footer">
+                <span>DataShadow · Privacy Intelligence</span>
+                <span style="float:right">Privacy analysis is indicative, not a guarantee of anonymity.</span>
+            </footer>
+        </div>
     </main>
+</div>
 </body>
 </html>
