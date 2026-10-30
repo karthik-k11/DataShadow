@@ -45,6 +45,31 @@ It brings data profiling, data quality checks, heuristic privacy analysis, confi
 - **Consolidated Evaluation:** Present privacy diagnostics, statistical utility metrics, and explanatory limitations.
 - **Report Export:** Download empirical privacy-evaluation results as CSV.
 
+
+## Workflow Architecture
+
+The following diagram illustrates the end-to-end workflow and architecture of DataShadow, from dataset upload and analysis to synthetic data generation, evaluation, and report generation.
+
+![DataShadow Workflow Architecture](screenshots/Datashadow_Workflow.png)
+
+### Workflow Overview
+
+1. **User & Dashboard:** Access the five dashboard sections — Overview, Upload & Analyze, Generate Synthetic, Compare Data, and Analysis History.
+2. **Flask Backend:** Handles application requests, validation, session management, and workflow execution.
+3. **Data Processing:** Performs data profiling, quality checks, PII detection, and privacy risk analysis.
+4. **Synthetic Data Generation:** Generates synthetic datasets using configurable sampling strategies and constraints.
+5. **Evaluation:** Compares original and synthetic datasets using utility metrics and empirical privacy evaluation.
+6. **Storage & Outputs:** Maintains analysis history in SQLite and provides synthetic CSV files and privacy reports for download.
+
+### Supporting Components
+
+- **CSV Files:** Source dataset uploads.
+- **In-Memory Store:** Temporary dataset and session storage.
+- **SQLite Database:** Stores analysis history and summary metadata.
+- **Templates & Static Files:** Provides the web interface.
+- **Automated Tests:** Validates application functionality and security.
+
+
 ## Dashboard Screenshots
 
 The following screenshots demonstrate the DataShadow interface and its analysis workflow.
